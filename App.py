@@ -70,6 +70,7 @@ def get_db_connection():
             f"UID={DB_USER};"
             f"PWD={DB_PASSWORD};"
         )
+        print("Connected to the database!")
         return conn
     except Exception as e:
         print(f"Database connection failed: {e}")
@@ -83,15 +84,33 @@ def home():
 @app.route('/test-connection', methods=['GET'])
 def test_connection():
     try:
+        # Establish the database connection
         conn = get_db_connection()
+        
+        # Create a cursor to interact with the database
         cursor = conn.cursor()
-        cursor.execute("SELECT 1")
-        result = cursor.fetchone()
+
+        # Execute a query to fetch the database version
+        cursor.execute("SELECT @@VERSION")  # Fetch SQL Server version
+        result = cursor.fetchone()  # Get the first row (which contains the version string)
+
+        # Close cursor and connection
         cursor.close()
         conn.close()
-        return jsonify({"status": "success", "result": result})
+
+        # Return the database version as the result
+        return jsonify({
+            "status": "success",
+            "message": "Database connected successfully!",
+            "result": result[0]  # result[0] contains the version string
+        })
+
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)})
+        # Handle any errors and return a meaningful message
+        return jsonify({
+            "status": "error",
+            "message": f"Failed to connect to the database: {str(e)}"
+        })
 
 
 @app.route('/get-data', methods=['POST'])
